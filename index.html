@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Color Picker</title>
+    <link rel="stylesheet" href="./Font Awsome/CSS/all.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <div class="image-color-picker">
+        <h1>Image Color Picker</h1>
+        <div class="images-selector">
+            <img src="./Images/image12.jpg" class="profile" onclick="changePhoto(src)">
+            <img src="./Images/image11.jpg" class="profile" onclick="changePhoto(src)">
+            <img src="./Images/image10.jpg" class="profile" onclick="changePhoto(src)">
+            <img src="./Images/image9.jpg" class="profile" onclick="changePhoto(src)">
+            <img src="./Images/image8.jpg" class="profile" onclick="changePhoto(src)">
+            <img src="./Images/image7.jpg" class="profile" onclick="changePhoto(src)">
+        </div>
+        <div class="image-container">
+            <img src="./Images/image1.jpg" class="image">
+        </div>
+        <div class="buttons">
+            <input id="file" type="file" class="open-file-btn"/>
+            <label for="file" class="open-file">Open Photo</label>
+            <button class="pick-color-btn">Pick Color</button>
+        </div>
+        <div class="color-grid hide">
+            <div class="color-block"></div>
+            <div class="color-name" id="colorName"></div>
+            <i class="fa-solid fa-copy" onclick="saveColor()"></i>
+        </div>
+        <div class="finally">
+            <div class="success hide"><i class="fa-solid fa-check"></i> Color Copied Successfully</div>
+            <div class="error hide"><i class="fa-solid fa-times"></i> Something went Wrong</div>
+        </div>
+    </div>
+</body>
+<script defer>
+    const image = document.querySelector('.image'),
+    copyIcon = document.querySelector('.fa-copy'),
+    colorName = document.querySelector('.color-name'),
+    colorBlock = document.querySelector('.color-block'),
+    success = document.querySelector('.success'),
+    error = document.querySelector('.error'),
+    colorGrid = document.querySelector('.color-grid'),
+    pickColor = document.querySelector('.pick-color-btn'),
+    openFile = document.querySelector('.open-file-btn');
+
+    let eyeDropper;
+    window.onload = () => {
+        if("EyeDropper" in window){
+            eyeDropper = new EyeDropper();
+        }else{
+            error.classList.remove('hide');
+            error.innerText = "Your Browser dosen't support EyeDropper API";
+            return false;
+        }
+    }
+
+    const copyColor = (hexaValue) => {
+        navigator.clipboard.writeText(hexaValue).then(() => {
+            colorName.innerText = 'Copied'
+            success.classList.remove('hide')
+            setTimeout(() => {
+                success.classList.add('hide')
+                colorName.innerText = hexaValue
+            },2000)
+        }).catch((err) => {
+            error.classList.remove('hide')
+            error.innerText = err;
+            setTimeout(() => {
+                error.classList.add('hide')
+            },2000)
+        })
+    }
+
+    const selectColor = async() => {
+        const color = await eyeDropper.open().then((colorValue) => {
+            error.classList.add('hide')
+            let hexaValue = colorValue.sRGBHex;
+            colorGrid.style.display = 'flex'
+            colorBlock.style.display = 'block'
+            colorBlock.style.backgroundColor = hexaValue
+            colorName.innerText = hexaValue;
+            copyIcon.addEventListener('click',() => copyColor(hexaValue))
+        })
+        .catch((err) => {
+            if(err.toString().includes('AbortError')){
+                error.classList.remove('hide')
+                error.innerText = 'Pick the Color Again!..'
+            }else{
+                error.classList.remove('hide')
+            }
+            
+        })
+    }
+    pickColor.addEventListener('click',selectColor);
+
+    openFile.onchange = () => {
+        colorGrid.style.display = 'none'
+        let reader = new FileReader();
+        console.log(openFile.files)
+        console.log(openFile.files[0])
+        reader.readAsDataURL(openFile.files[0])
+        reader.onload = () => {
+            console.log(reader.result)
+            image.setAttribute('src',reader.result)
+        }
+    }
+
+    const changePhoto = (src) => {
+        image.setAttribute('src',src)
+    }
+</script>
+</html>
